@@ -1,0 +1,21 @@
+# samba-ubuntu.yml
+---
+- hosts: sambaservers
+  handlers:
+    - name: restart samba
+      service: name=samba state=restarted
+  tasks:
+    - name: 1. Installer samba
+      apt: name=samba state=present
+    - name: 2. Démarrer service samba
+      service: name=samba state=running enabled=yes
+    - name: 3. Création du dossier public
+      command: mkdir -p /srv/samba/commun
+    - name: 4. Correction des droits
+      file: path=/srv/samba/commun owner=root group=users mode=0777
+    - name: 5. Modification du fichier smb.conf
+      lineinfile: dest=/etc/samba/smb.conf backup=yes line="include /etc/samba/smb.conf.ansible"
+    - name: 6 Copier le fichier personnalisé de samba
+      copy: src=samba-debian.yml.smb.conf.ansible dest=/etc/samba/smb.conf.ansible
+      notify:
+        - restart samba
