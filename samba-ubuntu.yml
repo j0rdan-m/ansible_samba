@@ -1,21 +1,42 @@
 # samba-ubuntu.yml
 ---
-- hosts: sambaservers
+- hosts: ubuntu
+  remote_user: vagrant
+  become: yes
+  become_method: "sudo"
+
   handlers:
     - name: restart samba
-      service: name=samba state=restarted
+      service:
+              name: smbd 
+              state: restarted
+      service:
+              name: nmbd
+              state: restarted
   tasks:
-    - name: 1. Installer samba
-      apt: name=samba state=present
-    - name: 2. Démarrer service samba
-      service: name=samba state=running enabled=yes
-    - name: 3. Création du dossier public
-      command: mkdir -p /srv/samba/commun
-    - name: 4. Correction des droits
-      file: path=/srv/samba/commun owner=root group=users mode=0777
-    - name: 5. Modification du fichier smb.conf
-      lineinfile: dest=/etc/samba/smb.conf backup=yes line="include /etc/samba/smb.conf.ansible"
-    - name: 6 Copier le fichier personnalisé de samba
-      copy: src=samba-debian.yml.smb.conf.ansible dest=/etc/samba/smb.conf.ansible
+    - name: Installer samba
+      apt:
+              name: samba 
+              state: latest
+    - name: Démarrer service samba
+      service:
+              name: smbd 
+              state: started 
+              enabled: true
+    - name: Création du dossier public
+      file:
+              path: /srv/samba/commun
+              owner: nobody
+              group: nogroup
+              state: directory
+              mode: 0777
+    - name: Ouvrir le firewall pour samba
+      ufw:
+              rule: allow
+              name: Samba
+    - name: Copier le fichier personnalisé de samba
+      copy:
+              src: /home/vagrant/ansible_samba/smb.conf 
+              dest: /etc/samba/smb.conf
       notify:
-        - restart samba
+              - restart samba
