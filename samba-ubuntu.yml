@@ -39,7 +39,7 @@
               name: Samba
     - name: Copier le fichier personnalisé de samba
       copy:
-              src: /home/vagrant/ansible_samba/smb.conf 
+              src: /home/vagrant/ansible_samba-master/smb.conf 
               dest: /etc/samba/smb.conf
       notify:
               - restart samba
